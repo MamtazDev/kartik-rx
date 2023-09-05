@@ -1,0 +1,177 @@
+component1_url: &url "/notifications"
+component1_title: &title "IP Notifications"
+component1_name: &name "Notification"
+
+components:
+  # Room List
+  - path: *url
+    template_type: "base"
+    content:
+      name: *name
+      title: *title
+      heading: "Notifications"
+      sub_heading: "Notifications"
+
+    subcomponents:
+      in_room_list:
+        template_type: "table_query"
+        content:
+          name: "InRoomList"
+          page_title: "Current IP Patients"
+          init_table_data_action: [DATA_LOAD, SHOW_GLOBAL_LOADER]
+          columns:
+            - { id: "admDate", label: "Adm Date", align: "center"}
+            - { id: "id", label: "IP No.", align: "center"}
+            - { id: "mrno", label: "MR No.", align: "center"}
+            - { id: "name", label: "Name", align: "center"}
+            - { id: "gender", label: "Gender", align: "center"}
+            - { id: "phone", label: "Phone", align: "center"}
+            - { id: "roomNameDisp", label: "Room", align: "center"}
+          prepare_rows_fn: helperFns.prepareRowsFn
+          action_buttons_list:
+            - { label: "Discharge", onClick: "onDischargeClickFn", action_type: "OPEN_DischargeDialog" }
+            - { label: "Change Room", onClick: "onChangeRoomClickFn", action_type: "OPEN_ChangeRoomDialog" }
+            - { label: "Edit", onClick: "onEditClickFn", action_type: "OPEN_EditDialog" }
+          additional_imports:
+            - "import helperFns from 'compiled_helpers/Notification/NotificationHelper';"
+        
+        subcomponents:
+          confirm_discharge:
+            template_type: "children_dialog"
+            content:
+              name: "DischargeDialog"
+              title: "Discharge Patient"
+              displayActions: "false"
+              actions:
+                onClose: {action_type: CLOSE_DischargeDialog}
+
+            subcomponents:
+              room_select_form:
+                template_type: "form"
+                content:
+                  name: "DischargeDialogDetails"
+                  form_header: "Details"
+                  submit_action_type: DISCHARGE_PATIENT_SUBMIT
+                  presubmit_data_process: helperFns.dischargeEditPresubmitDataProcessFn
+                  fields:
+                    - { component: "number", name: 'dischargeDetails.billno' , componentOptions: { label: "Bill No.", fullWidth: true }}
+                    - component: "number"
+                      name: 'dischargeDetails.discount'
+                      componentOptions: { label: "Discount", fullWidth: true, onChangeHelper: helperFns.onDiscountChangeFn }
+                    - { component: "textDisplay", name: 'dischargeDetails.room_amount', componentOptions: { label: "Room Fee", fullWidth: true, disabled: true }}
+                    - { component: "textDisplay", name: 'dischargeDetails.doctor_amount', componentOptions: { label: "Doctor Fee", fullWidth: true, disabled: true }}
+                    - { component: "textDisplay", name: 'dischargeDetails.total_amount', componentOptions: { label: "Total Amount", fullWidth: true, disabled: true }}
+                    - { component: "textDisplay", name: 'dischargeDetails.final_amount', componentOptions: { label: "Final Amount", fullWidth: true, disabled: true }}
+                  additional_imports:
+                    - "import helperFns from 'compiled_helpers/Notification/NotificationHelper';"
+          
+          edit_patient:
+            template_type: "children_dialog"
+            content:
+              name: "EditDialog"
+              title: "Edit History"
+              displayActions: "false"
+              actions:
+                onClose: {action_type: CLOSE_EditDialog}
+
+            subcomponents:
+              room_select_form:
+                template_type: "form"
+                content:
+                  name: "EditDialogDetails"
+                  form_header: "Details"
+                  submit_action_type: EDIT_PATIENT_SUBMIT
+                  presubmit_data_process: helperFns.dischargeEditPresubmitDataProcessFn
+                  fields:
+                    - { component: "date", name: 'startdate', componentOptions: { label: "Start Date" }}
+                    - { component: "date", name: 'enddate', componentOptions: { label: "End Date" }}
+                    - component: "pageDataProcessed"
+                      baseComponent: "autocomplete"
+                      name: 'room_id'
+                      componentOptions: { label: "Room", fullWidth: true, pageFormDataProcessor: helperFns.roomNamesFromDialogStateFn }
+                    # - component: "apiAutocomplete"
+                    #   name: 'room.id'
+                    #   componentOptions: { label: "Room", fullWidth: true, fetchOptions: helperFns.getAllActiveRoomsForAutocompleteFn }
+                  additional_imports:
+                    - "import helperFns from 'compiled_helpers/Notification/NotificationHelper';"
+            
+          change_room:
+            template_type: "children_dialog"
+            content:
+              name: "ChangeRoomDialog"
+              title: "Change Patient Room"
+              displayActions: "false"
+              maxWidth: 'md'
+              actions:
+                onClose: {action_type: CLOSE_ChangeRoomDialog}
+            
+            subcomponents:
+              room_select_form:
+                template_type: "form"
+                content:
+                  name: "ChangeRoom"
+                  form_header: "Available Rooms"
+                  submit_action_type: CHANGEROOM_SUBMIT
+                  presubmit_data_process: helperFns.changeRoomPresubmitDataProcessFn
+                  fields:
+                    - component: "apiAutocomplete"
+                      name: 'room.id'
+                      componentOptions: { label: "Room", fullWidth: true, fetchOptions: addPatientHelperFns.getRoomsForAutocompleteFn }
+
+                  additional_imports:
+                    - "import addPatientHelperFns from 'compiled_helpers/NotificationAddPatient/helper';"
+                    - "import helperFns from 'compiled_helpers/Notification/NotificationHelper';"
+      
+    reducer:
+      template_type: 'reducer'
+      content:
+        action_types:
+
+          DATA_LOAD:
+            prepare_state_fn: helperFns.actionTypesUtils.dataloadFn
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.dataloadFn
+              success_actiontype: [DATA_LOAD_SUCCEEDED, HIDE_GLOBAL_LOADER]
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+          DATA_LOAD_SUCCEEDED:
+            prepare_state_fn: helperFns.actionTypesUtils.dataloadSuccessFn
+          
+          OPEN_DischargeDialog:
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.patientChargesDataloadFn
+              success_actiontype: DISCHARGE_PATIENT_SUMMARY_LOAD_SUCCEEDED
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+          CLOSE_DischargeDialog:
+          DISCHARGE_PATIENT_SUMMARY_LOAD_SUCCEEDED:
+            prepare_state_fn: helperFns.actionTypesUtils.patientChargesLoadSuccessFn
+
+          DISCHARGE_PATIENT_SUBMIT:
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.dischargePatientSubmitFn
+              success_actiontype: [ON_SNACKBAR_SUCCESS_ACTION, PAGE_RESET]
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+
+          OPEN_EditDialog:
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.patientChargesDataloadFn
+              success_actiontype: DISCHARGE_PATIENT_SUMMARY_LOAD_SUCCEEDED
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+          CLOSE_EditDialog:
+
+          EDIT_PATIENT_SUBMIT:
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.editPatientSubmitFn
+              success_actiontype: [ON_SNACKBAR_SUCCESS_ACTION, PAGE_RESET]
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+
+          OPEN_ChangeRoomDialog:
+          CLOSE_ChangeRoomDialog:
+          CHANGEROOM_SUBMIT:
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.changeRoomSubmitFn
+              success_actiontype: [ON_SNACKBAR_SUCCESS_ACTION, PAGE_RESET]
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+
+        initial_state: helperFns.INITIAL_STATE
+        additional_imports:
+          - "import helperFns from 'compiled_helpers/Notification/NotificationHelper';"

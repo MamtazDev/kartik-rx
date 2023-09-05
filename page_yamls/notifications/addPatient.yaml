@@ -1,0 +1,86 @@
+component_url: &url "/notifications/add_patient"
+component_title: &title "Add Patient"
+component_name: &name "NotificationAddPatient"
+
+components:
+  # Add patient
+  - path: *url
+    template_type: "base"
+    content:
+      name: *name
+      title: *title
+      heading: "Notifications"
+      sub_heading: "Add Patient"
+    
+    subcomponents:
+      admission_form:
+        template_type: "form"
+        content:
+          name: "Admission"
+          form_header: "Details"
+          submit_action_type: ADD_PATIENT_SUBMIT
+          presubmit_data_process: addPatientHelperFns.presubmit_data_process
+          fields: []
+          additional_imports:
+            - "import addPatientHelperFns from 'compiled_helpers/NotificationAddPatient/helper';"
+        
+        subcomponents:
+          patient_data:
+            template_type: "form_base"
+            content:
+              name: "AdmissionData"
+              fields:
+                - { component: "date", componentOptions: { label: "Date of Admission", fullWidth: true }, name: 'patient.doa' }
+                - { component: "text", componentOptions: { label: "Patient IP No.", fullWidth: true }, name: 'registration_info.ipno' }
+                - { component: "text", componentOptions: { label: "Patient Name", fullWidth: true }, name: 'patient.first_name' }
+                - component: "apiAutocomplete"
+                  name: 'doctor.ids'
+                  componentOptions: { label: "Doctor Name", fullWidth: true, fetchOptions: addPatientHelperFns.getDoctorsForAutocompleteFn }
+                - component: "apiAutocomplete"
+                  name: 'registration_info.room_id'
+                  componentOptions: { label: "Room", fullWidth: true, fetchOptions: addPatientHelperFns.getRoomsForAutocompleteFn }
+              additional_imports:
+                - "import addPatientHelperFns from 'compiled_helpers/NotificationAddPatient/helper';"
+        
+    reducer:
+      template_type: 'reducer'
+      content:
+        action_types:
+          ADD_PATIENT_SUBMIT:
+            action_handler_fn:
+              function: addPatientHelperFns.actionHandlerUtils.addPatientSubmitFn
+              success_actiontype: [PAGE_RESET, ON_SNACKBAR_SUCCESS_ACTION]
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+          ADD_PATIENT_SUBMIT_SUCCEEDED:
+            prepare_state_fn: addPatientHelperFns.actionTypesUtils.addPatientSubmitSuccessFn
+          RESET_PATIENT_FORM:
+            prepare_state_fn: addPatientHelperFns.actionTypesUtils.resetPatientForm
+        initial_state: addPatientHelperFns.INITIAL_STATE
+        additional_imports:
+              - "import addPatientHelperFns from 'compiled_helpers/NotificationAddPatient/helper';"
+
+              
+# admission_form:
+#   template_type: "form"
+#   content:
+#     name: "Admission"
+#     form_header: "Details"
+#     default_value: {patient: {first_name: "", doa: ""}, doctor: {name: "", ids: ""}, room: {type: ""}, registration_info: {room_id: "", ipno: "", registration_type: "IP"}}
+#     submit_action_type: ADD_PATIENT_SUBMIT
+#     presubmit_data_process: addPatientHelperFns.presubmit_data_process
+#     fields:
+#       - { component: "date", componentOptions: { label: "Date of Admission", fullWidth: true }, name: 'patient.doa' }
+#       - { component: "text", componentOptions: { label: "Patient IP No.", fullWidth: true }, name: 'registration_info.ipno' }
+#       - { component: "text", componentOptions: { label: "Patient Name", fullWidth: true }, name: 'patient.first_name' }
+#       - component: "apiSelect"
+#         name: 'doctor.ids'
+#         componentOptions: { label: "Doctor Name", fullWidth: true, apiFields: {endpoint: '/doctors', dataProcessor: addPatientHelperFns.doctorsApiRequestProcessorFn} }
+#       - component: "apiSelect"
+#         name: 'room.type'
+#         componentOptions: { label: "Room Type", fullWidth: true, apiFields: {endpoint: '/rooms/available', dataProcessor: addPatientHelperFns.roomApiRequestProcessorFn} }
+#       - component: "pageDataProcessed"
+#         baseComponent: "select"
+#         name: 'registration_info.room_id'
+#         componentOptions: { label: "Room No", fullWidth: true, pageFormDataProcessor: addPatientHelperFns.roomNamesFromApiFn }
+#     additional_imports:
+#       - "import addPatientHelperFns from 'compiled_helpers/NotificationAddPatient/helper';"

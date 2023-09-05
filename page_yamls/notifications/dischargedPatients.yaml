@@ -1,0 +1,89 @@
+component3_url: &url "/notifications/discharged_patient"
+component3_title: &title "Discharged Patient"
+component3_name: &name "NotificationDischargedPatient"
+
+components:
+  # Discharged patients list
+  - path: *url
+    template_type: "base"
+    content:
+      name: *name
+      title: *title
+      heading: "Notifications"
+      sub_heading: "Discharged Patients"
+
+    subcomponents:
+      in_room_list:
+        template_type: "table_query"
+        content:
+          name: "DischargedList"
+          page_title: "Discharged IP Patients (Today)"
+          init_table_data_action: DATA_LOAD
+          columns:
+            - { id: "admDate", label: "Adm Date", align: "center"}
+            - { id: "disDate", label: "Discharged Date", align: "center"}
+            - { id: "discharge_ip.ipno", label: "IP No.", align: "center"}
+            - { id: "mrno", label: "MR No.", align: "center"}
+            - { id: "name", label: "Name", align: "center"}
+            - { id: "gender", label: "Gender", align: "center"}
+            - { id: "phone", label: "Phone", align: "center"}
+          prepare_rows_fn: helperFns.prepareRowsFn
+          action_buttons_list:
+            - { label: "Summary", onClick: "onViewSummaryClickFn", action_type: ["OPEN_SummaryDialog", "SUMMARY_TABLE_INIT"] }
+          additional_imports:
+            - "import helperFns from 'compiled_helpers/Notification/DischargePatientHelper';"
+        
+        subcomponents:
+          summary_dialog:
+            template_type: "children_dialog"
+            content:
+              name: "SummaryDialog"
+              title: "Patient Discharge Summary"
+              displayActions: "false"
+              actions:
+                onClose: {action_type: CLOSE_SummaryDialog}
+            
+            subcomponents:
+              summary_table:
+                template_type: "table_query"
+                content:
+                  name: "SummaryTable"
+                  page_title: "Charges"
+                  init_table_data_action: SUMMARY_DATA_LOAD
+                  columns:
+                    - { id: "type", label: "Charge Type", align: "center"}
+                    - { id: "amount", label: "Amount", align: "center"}
+                  prepare_rows_fn: helperFns.prepareSummaryTableRowsFn
+                  additional_imports:
+                    - "import helperFns from 'compiled_helpers/Notification/DischargePatientHelper';"
+      
+    reducer:
+      template_type: 'reducer'
+      content:
+        action_types:
+          DATA_LOAD:
+            prepare_state_fn: helperFns.actionTypesUtils.dataloadFn
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.dataloadFn
+              success_actiontype: DATA_LOAD_SUCCEEDED
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+          DATA_LOAD_SUCCEEDED:
+            prepare_state_fn: helperFns.actionTypesUtils.dataloadSuccessFn
+          
+          SUMMARY_TABLE_INIT:
+            prepare_state_fn: helperFns.actionTypesUtils.dischargeSummaryDataloadFn
+          SUMMARY_DATA_LOAD:
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.getDischargeSummaryData
+              success_actiontype: SUMMARY_DATA_LOAD_SUCCEEDED
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+          SUMMARY_DATA_LOAD_SUCCEEDED:
+            prepare_state_fn: helperFns.actionTypesUtils.dischargeSummaryDataloadSuccessFn
+          
+          OPEN_SummaryDialog:
+          CLOSE_SummaryDialog:
+
+        initial_state: helperFns.INITIAL_STATE
+        additional_imports:
+              - "import helperFns from 'compiled_helpers/Notification/DischargePatientHelper';"
+

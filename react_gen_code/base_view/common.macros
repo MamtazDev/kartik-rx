@@ -1,0 +1,7 @@
+{%- macro get_action_types(action_type) -%}
+{%- if action_type is string -%}
+[ACTION_TYPES.{{action_type}},]
+{%- else -%}
+[{%- for _action in action_type %}ACTION_TYPES.{{_action}}, {%- endfor %}]
+{%- endif -%}
+{%- endmacro -%}

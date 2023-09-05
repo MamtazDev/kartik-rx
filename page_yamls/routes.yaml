@@ -1,0 +1,25 @@
+routes:
+  /cancelledInvestigations:
+    exact: 'true'
+    import_path: compiled/CancelledTest/CancelledTest
+    path: /cancelledInvestigations
+  /investigations:
+    exact: 'true'
+    import_path: compiled/ProcessTest/ProcessTest
+    path: /investigations
+  /investigations2:
+    exact: 'true'
+    import_path: compiled/ProcessTest/ProcessTest
+    path: /investigations2
+  /notifications:
+    exact: 'true'
+    import_path: compiled/Notification/Notification
+    path: /notifications
+  /notifications/add_patient:
+    exact: 'true'
+    import_path: compiled/NotificationAddPatient/NotificationAddPatient
+    path: /notifications/add_patient
+  /notifications/discharged_patient:
+    exact: 'true'
+    import_path: compiled/NotificationDischargedPatient/NotificationDischargedPatient
+    path: /notifications/discharged_patient

@@ -1,0 +1,105 @@
+component_url: &url "/cancelledInvestigations"
+component_title: &title "Cancelled Tests"
+component_name: &name "CancelledTest"
+
+components:
+  # Add patient
+  - path: *url
+    template_type: "base"
+    content:
+      name: *name
+      title: *title
+      heading: "Investigations"
+      sub_heading: "Cancelled Tests"
+
+    subcomponents:
+      search_form:
+        template_type: "form"
+        content:
+          name: "Search"
+          submit_button_text: "Search"
+          submit_action_type: ON_SEARCH_DATA_LOAD
+          presubmit_data_process: helperFns.presubmit_data_process
+          fields:
+            - { component: "date", componentOptions: { label: "From", fullWidth: true }, name: 'date_from', formFieldStyle: 'HALF' }
+            - { component: "date", componentOptions: { label: "To", fullWidth: true }, name: 'date_to', formFieldStyle: 'HALF' }
+          additional_imports:
+            - "import helperFns from 'compiled_helpers/ProcessTests/helper';"
+
+      tests_list:
+        template_type: "table_query"
+        content:
+          name: "CancelledTestsList"
+          page_title: "Cancelled Tests"
+          display_pagination: 'true'
+          init_table_data_action: DATA_LOAD
+          columns:
+            - { id: "date", label: "Adm Date", align: "center" }
+            - { id: "ip_id", label: "IP No.", align: "center" }
+            - { id: "patient_id", label: "MR No.", align: "center" }
+            - { id: "bill_id", label: "Bill No.", align: "center" }
+            - { id: "patient_name", label: "Patient Name", align: "center" }
+            - { id: "no_of_tests", label: "No.of Test", align: "center" }
+            - { id: "no_of_test_completed", label: "No.of Tests Processed", align: "center" }
+            - { id: "no_of_test_cancelled", label: "No.of Tests Cancelled", align: "center" }
+          prepare_rows_fn: helperFns.prepareRowsFn
+          action_buttons_list:
+            - { label: "Cancelled", onClick: "onViewSummaryClickFn", action_type: ["OPEN_SummaryDialog", "SUMMARY_TABLE_INIT"] }
+          additional_imports:
+            - "import helperFns from 'compiled_helpers/ProcessTests/helper';"
+
+      summary_dialog:
+        template_type: "children_dialog"
+        content:
+          name: "SummaryDialog"
+          title: "Cancelled Tests"
+          displayActions: "false"
+          actions:
+            onClose: {action_type: CLOSE_SummaryDialog}
+
+        subcomponents:
+          summary_table:
+            template_type: "table_query"
+            content:
+              name: "SummaryTable"
+              page_title: "Tests List"
+              init_table_data_action: SUMMARY_DATA_LOAD
+              columns:
+                - { id: "description", label: "Description", align: "center"}
+
+    reducer:
+      template_type: 'reducer'
+      content:
+        action_types:
+
+          DATA_LOAD:
+            prepare_state_fn: helperFns.actionTypesUtils.dataloadFn
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.dataloadFn
+              success_actiontype: [DATA_LOAD_SUCCEEDED, HIDE_GLOBAL_LOADER]
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+          DATA_LOAD_SUCCEEDED:
+            prepare_state_fn: helperFns.actionTypesUtils.dataloadSuccessFn
+          
+          ON_SEARCH_DATA_LOAD:
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.dataloadFn
+              success_actiontype: [DATA_LOAD_SUCCEEDED, HIDE_GLOBAL_LOADER]
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+          
+          SUMMARY_TABLE_INIT:
+            prepare_state_fn: helperFns.actionTypesUtils.cancelledTestDataloadFn
+          SUMMARY_DATA_LOAD:
+            action_handler_fn:
+              function: helperFns.actionHandlerUtils.getCancelledTestData
+              success_actiontype: SUMMARY_DATA_LOAD_SUCCEEDED
+              failure_actiontype: ON_SNACKBAR_ERROR_ACTION
+          SUMMARY_DATA_LOAD_SUCCEEDED:
+            prepare_state_fn: helperFns.actionTypesUtils.cancelledTestDataloadSuccessFn
+
+          OPEN_SummaryDialog:
+          CLOSE_SummaryDialog:
+
+        initial_state: 'helperFns.INITIAL_STATE({cancelled_only: true})'
+        additional_imports:
+              - "import helperFns from 'compiled_helpers/ProcessTests/helper';"

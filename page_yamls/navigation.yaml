@@ -1,0 +1,19 @@
+navigations:
+  - title: "Notifications"
+    path: "/notifications"
+    icon: "NotificationsActiveOutlinedIcon"
+    children:
+      - {href: "/notifications", title: "IP Notifications"}
+      - {href: "/notifications/add_patient", title: "Add Patient"}
+      - {href: "/notifications/discharged_patient", title: "Discharged Patient"}
+  
+  - title: "Investigations2"
+    path: "/investigations"
+    icon: "LocalHospital"
+    children:
+      - {href: "/investigations", title: "Process Tests"}
+      - {href: "/cancelledInvestigations", title: "Cancelled Tests"}
+
+additional_imports:
+  - "import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';"
+  - "import LocalHospital from '@mui/icons-material/LocalHospital';"

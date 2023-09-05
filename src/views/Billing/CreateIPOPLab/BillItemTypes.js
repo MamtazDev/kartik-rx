@@ -1,0 +1,7 @@
+export const BillItemTypes = {
+  LAB : 'LAB',
+  CONSULTATION : 'CONSULTATION',
+  ROOM : 'ROOM',
+  ROOM_CONSULTATION : 'ROOM_CONSULTATION',
+  PAYMENT: 'PAYMENT',
+};
