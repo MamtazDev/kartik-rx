@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "start": "react-app-rewired start",
-    "build": "GENERATE_SOURCEMAP=false react-app-rewired build && gzipper compress ./build",
+    "build": "react-app-rewired build && gzipper compress ./build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
